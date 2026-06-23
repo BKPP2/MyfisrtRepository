@@ -24,16 +24,16 @@ type ExampleReply struct {
 // 表示 Coordinator 可能返回给 Worker 的四种状态：
 type TaskType int //底层是 int
 const (           //块定义常量
-	MapTask TaskType = iota //iota从0开始每行自动加1
-	ReduceTask
-	WaitTask
+	MapTask    TaskType = iota //iota从0开始每行自动加1
+	ReduceTask                 //reduce阶段
+	WaitTask                   //没有任务可分配，Worker需要等待
 	ExitTask
 )
 
 // Worker 向 Coordinator 请求任务;
 type AskTaskArgs struct {
 }
-type AskTaskReplay struct {
+type AskTaskReply struct {
 	TaskType TaskType
 	TaskId   int
 	FileName string
