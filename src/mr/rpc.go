@@ -1,25 +1,7 @@
 package mr
 
-//
 // RPC definitions.
-//
-// remember to capitalize all names.
-//
-
-//
-// example to show how to declare the arguments
-// and reply for an RPC.
-//
-
-type ExampleArgs struct {
-	X int
-}
-
-type ExampleReply struct {
-	Y int
-}
-
-// Add your RPC definitions here.
+//定义 Worker 和 Coordinator 之间通信的数据结构
 
 // 表示 Coordinator 可能返回给 Worker 的四种状态：
 type TaskType int //底层是 int

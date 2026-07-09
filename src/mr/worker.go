@@ -1,11 +1,13 @@
 package mr
 
-import "fmt"
-import "log"
-import "net/rpc"
-import "hash/fnv"
-import "os"
-
+import (
+	"fmt"
+	"hash/fnv"
+	"log"
+	"net/rpc"
+	"os"
+	"time"
+)
 
 // Map functions return a slice of KeyValue.
 type KeyValue struct {
@@ -23,18 +25,46 @@ func ihash(key string) int {
 
 var coordSockName string // socket for coordinator
 
-
 // main/mrworker.go calls this function.
+
+// Worker 不断向 Coordinator 请求任务，然后根据任务类型采取行动。
 func Worker(sockname string, mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
 
 	coordSockName = sockname
-
+	for {
+		args := AskTaskArgs{}
+		reply := AskTaskReply{}
+		ok := call("Coordinator.AskTask", &args, &reply) //RPC调用成功
+		if !ok {
+			time.Sleep(time.Second)
+			continue
+		}
+		switch reply.TaskType {
+		case MapTask:
+			doMapTask(reply, mapf)
+			finishTask(MapTask, reply.TaskId)
+		case ReduceTask:
+			doReduceTask(reply, reducef)
+			finishTask(ReduceTask, reply.TaskId)
+		case WaitTask:
+			time.Sleep(time.Second)
+		case ExitTask:
+			return
+		}
+	}
 	// Your worker implementation here.
-
 	// uncomment to send the Example RPC to the coordinator.
 	// CallExample()
 
+}
+
+func finishTask(taskType TaskType, taskId int) {
+	args := FinishTaskArgs{
+		TaskType: taskType, TaskId: taskId,
+	}
+	reply := FinishTaskReply{}
+	call("Coordinator.FinishTask", &args, &reply)
 }
 
 // example function to show how to make an RPC call to the coordinator.
